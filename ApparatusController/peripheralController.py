@@ -127,7 +127,7 @@ class PeripheralController(QAbstractListModel):
     
     @Slot(result=str)
     def mainGridMenu_getOscParameters(self):
-        report_str = "VNA: " + ("Active" if self.device_activity_dict["osc"] == 1 else "Disconnected")
+        report_str = "Oscilloscope: " + ("Active" if self.device_activity_dict["osc"] == 1 else "Disconnected")
         return report_str
     
     @Slot(result=str)
