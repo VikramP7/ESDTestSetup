@@ -1,0 +1,7 @@
+module App
+Main 254.0 Main.qml
+ConfigureDialog 254.0 ConfigureDialog.qml
+OscilloscopeForm 254.0 OscilloscopeForm.qml
+SMUForm 254.0 SMUForm.qml
+VNAForm 254.0 VNAForm.qml
+TLPForm 254.0 TLPForm.qml
