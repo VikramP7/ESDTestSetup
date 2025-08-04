@@ -33,7 +33,10 @@ ApplicationWindow{
         // emitted any time a value is changed in the dialog to a valid entry
         onSettingChanged: (label, val) => peripheral_controller.storeParameter(label, val)
         // emitted once the dialog is closed
-        onFinished: (save_params) => peripheral_controller.saveParameters(save_params)
+        onFinished: (save_params) => {
+            peripheral_controller.saveParameters(save_params)
+            window.refreshMainMenu()
+        }
     }
 
     // Add a menubar for the application
@@ -102,6 +105,30 @@ ApplicationWindow{
         }
     }
 
+    function refreshMainMenu(){
+        controllerOnlineIndicator.color = peripheral_controller.mainGridMenu_getControllerActiveColor()
+        controllerParametersText.text = peripheral_controller.mainGridMenu_getControllerParameters()
+
+        powersupplyOnlineIndicator.color = peripheral_controller.mainGridMenu_getPowersupplyActiveColor()
+        powersupplyParametersText.text = peripheral_controller.mainGridMenu_getPowersupplyParameters()
+
+        tlpOnlineIndicator.color = peripheral_controller.mainGridMenu_getTlpActiveColor()
+        tlpParametersText.text = peripheral_controller.mainGridMenu_getTlpParameters()
+
+        smuOnlineIndicator.color = peripheral_controller.mainGridMenu_getSmuActiveColor()
+        smuParametersText.text = peripheral_controller.mainGridMenu_getSmuParameters()
+
+        vnaOnlineIndicator.color = peripheral_controller.mainGridMenu_getVnaActiveColor()
+        vnaParametersText.text = peripheral_controller.mainGridMenu_getVnaParameters()
+        
+        oscOnlineIndicator.color = peripheral_controller.mainGridMenu_getOscActiveColor()
+        oscParametersText.text = peripheral_controller.mainGridMenu_getOscParameters()
+        
+        re2layText.text = peripheral_controller.mainGridMenu_getRe2layText()
+        re1layText.text = peripheral_controller.mainGridMenu_getRe1layText()
+        re3layText.text = peripheral_controller.mainGridMenu_getRe3layText()
+        re4layText.text = peripheral_controller.mainGridMenu_getRe4layText()
+    }
 
     GridLayout{
         id: mainGridMenu
@@ -239,6 +266,7 @@ ApplicationWindow{
 
                 onClicked:{
                     peripheral_controller.mainGridMenu_controllerRefresh()
+                    window.refreshMainMenu()
                 }
             }
 
@@ -606,6 +634,7 @@ ApplicationWindow{
 
                 onClicked:{
                     peripheral_controller.mainGridMenu_smuRefresh()
+                    window.refreshMainMenu()
                 }
             }
 
@@ -677,6 +706,7 @@ ApplicationWindow{
             color: window.relayColor
             
             Text {
+                id: re2layText
                 text: qsTr("Relay 2 (re2lay)")
                 anchors.centerIn: parent
             }
@@ -716,6 +746,7 @@ ApplicationWindow{
             color: window.relayColor
             
             Text {
+                id: re1layText
                 text: qsTr("Relay 1 (re1lay)")
                 anchors.centerIn: parent
             }
@@ -793,6 +824,7 @@ ApplicationWindow{
 
                 onClicked:{
                     peripheral_controller.mainGridMenu_vnaRefresh()
+                    window.refreshMainMenu()
                 }
             }
 
@@ -876,6 +908,7 @@ ApplicationWindow{
             color: window.relayColor
             
             Text {
+                id: re3layText
                 text: qsTr("Relay 3 (re3lay)")
                 anchors.centerIn: parent
             }
@@ -984,6 +1017,7 @@ ApplicationWindow{
 
                 onClicked:{
                     peripheral_controller.mainGridMenu_oscRefresh()
+                    window.refreshMainMenu()
                 }
             }
 
@@ -1055,6 +1089,7 @@ ApplicationWindow{
             color: window.relayColor
             
             Text {
+                id: re4layText
                 text: qsTr("Relay 4 (re4lay)")
                 anchors.centerIn: parent
             }
@@ -1095,6 +1130,7 @@ ApplicationWindow{
             color: "#bbffb6"
             
             Text {
+                id: dutText
                 text: qsTr("DUT")
                 anchors.centerIn: parent
             }

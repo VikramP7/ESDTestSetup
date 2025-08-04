@@ -1,6 +1,11 @@
 from PySide6.QtCore import (QAbstractListModel, QEnum, Qt, QModelIndex, Slot, QByteArray)
 from PySide6.QtQml import QmlElement
 
+import pyvisa
+from VisaResource import VisaResource
+from OscilloscopeInterface import Oscilloscope
+import xtralien
+
 QML_IMPORT_NAME = "PeripheralController"
 QML_IMPORT_MAJOR_VERSION = 1
 
@@ -8,6 +13,25 @@ QML_IMPORT_MAJOR_VERSION = 1
 class PeripheralController(QAbstractListModel):
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
+
+        self.visa_resource_manager = pyvisa.ResourceManager()
+        self.oscilloscope = Oscilloscope(self.visa_resource_manager)
+
+        self.smu = None #xtralien.Device(f'COM{1}').smu1.oneshot(12)
+
+        self.vna = None
+
+        self.microcontroller = None
+
+
+        self.device_activity_dict = {
+            "osc": 0,
+            "smu": 0,
+            "tlp": 0,
+            "vna": 0,
+            "teensy": 0,
+            "powersupply":0
+        }
 
         # formating properties
         self.disconnected_red = "#DB324D"
@@ -43,15 +67,6 @@ class PeripheralController(QAbstractListModel):
 
             "powersupply_charge_voltage": 2000,
             "tlp_rise_time": "1ns"
-        }
-
-        self.device_activity_dict = {
-            "osc": 0,
-            "smu": 0,
-            "tlp": 0,
-            "vna": 0,
-            "teensy": 0,
-            "powersupply":0
         }
     
     @Slot(str, float)
@@ -134,16 +149,56 @@ class PeripheralController(QAbstractListModel):
     def mainGridMenu_getOscActiveColor(self):
         return (self.active_green if self.device_activity_dict["osc"] == 1 else self.disconnected_red)
     
+    @Slot(result=str)
+    def mainGridMenu_getRe1layText(self):
+        return "Relay 1 (re1lay)"
     
+    @Slot(result=str)
+    def mainGridMenu_getRe2layText(self):
+        return "Relay 2 (re2lay)"
+    
+    @Slot(result=str)
+    def mainGridMenu_getRe3layText(self):
+        return "Relay 3 (re3lay)"
+    
+    @Slot(result=str)
+    def mainGridMenu_getRe4layText(self):
+        return "Relay 4 (re4lay)"
 
     # ---------------- Main Grid Menu Buttons -----------------
     @Slot()
     def mainGridMenu_controllerRefresh(self):
         print("Controller Refresh clicked")
 
+        connect = False
+        if self.microcontroller == None:
+            # the microcontroller (teensey?) is not connected do connection procedure
+            connect = True
+        else:
+            # the microcontroller is theoretically connected so check this 
+            connect = not self.microcontroller.check_connection(self, silent=True)
+
+        if connect:
+            #do connection procedure
+            #self.microcontroller.connect() hasn't been writen yet
+            pass
+
     @Slot()
     def mainGridMenu_smuRefresh(self):
         print("SMU Refresh clicked")
+
+        connect = False
+        if self.smu == None:
+            # the microcontroller (teensey?) is not connected do connection procedure
+            connect = True
+        else:
+            # the microcontroller is theoretically connected so check this 
+            connect = not self.smu.check_connection()
+
+        if connect:
+            #do connection procedure
+            #self.microcontroller.connect() hasn't been writen yet
+            pass
 
     @Slot()
     def mainGridMenu_vnaRefresh(self):
