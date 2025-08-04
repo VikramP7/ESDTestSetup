@@ -6,7 +6,13 @@
 -   Please explain here how to use the python script
 
 ## TODO:
--   Everything
+-   Attach connetion testing and esablishent procedures to the refresh buttons on main menu
+    - Find how to check if the devices are still connected (fix it to actually test)
+-   Create second thread for test procedure
+-   Create the test procedure
+-   Attach run/stop buttons to the test procedure 
+-   Configuration import and export
+-   Data export
 -   Write readme
 
 ## How it Works:
