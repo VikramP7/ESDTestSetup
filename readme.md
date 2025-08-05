@@ -2,6 +2,13 @@
 
 # ESD Test Setup Controller
 
+## Necessary Imports:
+-   PySide6: `pip install pyside6`
+-   PyVisa: `pip install pyvisa-py`
+-   xtralien: `pip install xtralien`
+-   PySerial: `pip install pyserial`
+-   Numpy: `pip install numpy` 
+
 ## Usage
 -   Please explain here how to use the python script
 
