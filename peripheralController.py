@@ -23,7 +23,7 @@ class PeripheralController(QAbstractListModel):
         self.oscilloscope = Oscilloscope(self.visa_resource_manager)
 
         self.smu = OscillaSMU()
-        self.com_ports = []
+        self.com_ports = [] # a list of strings for active com ports eg. 'COM2'
 
         self.vna = None
 
@@ -267,8 +267,11 @@ class PeripheralController(QAbstractListModel):
     @Slot(int)
     def mainGridMenu_getSmuPortNum(self, port_num_index):
         """
-        
+        Called by Main.qml when smu is refreshed or the combo box value is changed
+
+        This updates the comport that the smu will connect to and attempt a connection
         """
+        # early return if no com port devices are connected
         if len(self.com_ports)<=0:
             return
         self.smu.set_com_port(self.com_ports[port_num_index])
@@ -277,15 +280,30 @@ class PeripheralController(QAbstractListModel):
 
     @Slot(int)
     def mainGridMenu_getControllerPortNum(self, port_num_index):
+        """
+        Called by Main.qml when controller is refreshed or the combo box value is changed
+
+        This updates the comport that the controller will connect to and attempt a connection
+        """
+        # early return if no com port devices are connected
+        if len(self.com_ports)<=0:
+            return
+        # TODO set_com_port hasn't been written yet
+        # self.controller.set_com_port(self.com_ports[port_num_index])
         print("Attempting connection to controller on COM port: " + str(port_num_index))
-        #self.smu.connect(com_port=1)
+        # TODO set_com_port hasn't been written yet
+        #self.controller.connect(com_port=1)
 
 
     # ---------------- Main Grid Menu Buttons -----------------
     @Slot()
     def mainGridMenu_controllerRefresh(self):
+        """
+        Called by Main.qml ONLY when controller refresh button is clicked
+        """
         print("Controller Refresh clicked")
 
+        # TODO VERY POORLY WRITTEN CODE necessary functions for microntroller haven't been written yet
         connect = False
         if self.microcontroller == None:
             # the microcontroller (teensey?) is not connected do connection procedure
@@ -301,6 +319,12 @@ class PeripheralController(QAbstractListModel):
 
     @Slot()
     def mainGridMenu_smuRefresh(self):
+        """
+        Called by Main.qml ONLY when smu refresh button is clicked
+
+        Checks com ports to update self.com_ports list with the availble com ports
+        Attempts connection to SMU
+        """
         print("SMU Refresh clicked")
         if len(self.com_ports) < 1:
             print("No Com Ports connected")
@@ -317,11 +341,22 @@ class PeripheralController(QAbstractListModel):
 
     @Slot()
     def mainGridMenu_vnaRefresh(self):
+        """
+        Called by Main.qml ONLY when vna refresh button is clicked
+
+        Attempts connection to VNA
+        """
         print("VNA Refresh clicked")
         print("MORE CODE MUST BE WRITTEN HERE TO IMPLEMENT THIS FEATURE")
 
     @Slot()
     def mainGridMenu_oscRefresh(self):
+        """
+        Called by Main.qml ONLY when oscilloscope refresh button is clicked
+
+        Checks com ports to update self.com_ports list with the availble com ports
+        Attempts connection to oscilloscope
+        """
         print("Oscilloscope Refresh clicked")
 
         if not self.oscilloscope.check_connection():
@@ -340,6 +375,9 @@ class PeripheralController(QAbstractListModel):
     @Slot()
     def refreshComPorts(self):
         """
+        Called by Main.qml and others
+
+        Sets self.com_ports list to the currently connected com ports
         Please see: https://pyserial.readthedocs.io/en/latest/tools.html
         """
         com_port_objects = list_ports.comports()
@@ -350,6 +388,9 @@ class PeripheralController(QAbstractListModel):
     @Slot(result=list)
     def avalibleComPorts(self):
         """
+        Called by Main.qml
+
+        Returns the avaible com ports after refreshing the com_ports list
         Please see: https://pyserial.readthedocs.io/en/latest/tools.html
         """
         self.refreshComPorts()
@@ -357,6 +398,8 @@ class PeripheralController(QAbstractListModel):
     
     
     # ------------------- Menu Bar Buttons --------------------
+
+    # TODO Much of the functionality of each of these buttons needs to be implemented
     @Slot()
     def menubartop_filereset(self):
         print("File reset clicked")
