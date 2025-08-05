@@ -20,8 +20,8 @@ GridLayout {
     property var osc_waveform_resolution_bottom: 0
     property var osc_waveform_resolution_top: 1
 
-    property var osc_aquisition_time_bottom: 0
-    property var osc_aquisition_time_top: 10
+    property var osc_acquisition_time_bottom: 0
+    property var osc_acquisition_time_top: 10
 
 
     Label {
@@ -82,7 +82,7 @@ GridLayout {
         text: qsTr("Trigger Voltage (V)")
         Layout.alignment: Qt.AlignLeft | Qt.AlignBaseline
 
-        ToolTip.text: "Set the trigger voltage for single waveform measurment"
+        ToolTip.text: "Set the trigger voltage for single waveform measurement"
         ToolTip.delay: 1000
         ToolTip.timeout: 5000
         ToolTip.visible: maOSCTriggerVoltage.containsMouse
@@ -155,7 +155,7 @@ GridLayout {
         ToolTip.text: qsTr("From " + osc_waveform_resolution_bottom + "s to " + osc_waveform_resolution_top + "s")
 
         onEditingFinished:{
-            console.log("OSC waveform resoultion changed by finished editing")
+            console.log("OSC waveform resolution changed by finished editing")
             root.valueChanged("osc_waveform_resolution", parseFloat(oscWaveformResolution.text))
         }
 
@@ -171,10 +171,10 @@ GridLayout {
 
 
     Label {
-        text: qsTr("Aquisition Time (s)")
+        text: qsTr("Acquisition Time (s)")
         Layout.alignment: Qt.AlignLeft | Qt.AlignBaseline
 
-        ToolTip.text: "Set the durration of the waveform measurment"
+        ToolTip.text: "Set the duration of the waveform measurement"
         ToolTip.delay: 1000
         ToolTip.timeout: 5000
         ToolTip.visible: maOSCAcquisitionTime.containsMouse
@@ -193,16 +193,16 @@ GridLayout {
 
         placeholderText: qsTr("(s)")
         inputMethodHints: Qt.ImhFormattedNumbersOnly
-        validator: DoubleValidator {bottom: osc_aquisition_time_bottom; top: osc_aquisition_time_top;}
+        validator: DoubleValidator {bottom: osc_acquisition_time_bottom; top: osc_acquisition_time_top;}
 
         ToolTip.delay: 1000
         ToolTip.timeout: 5000
         ToolTip.visible: hovered
-        ToolTip.text: qsTr("From " + osc_aquisition_time_bottom + "s to " + osc_aquisition_time_top + "s")
+        ToolTip.text: qsTr("From " + osc_acquisition_time_bottom + "s to " + osc_acquisition_time_top + "s")
 
         onEditingFinished:{
-            console.log("OSC aquisition time chnaged")
-            root.valueChanged("osc_aquisition_time", parseFloat(oscAcquisitionTime.text))
+            console.log("OSC acquisition time changed")
+            root.valueChanged("osc_acquisition_time", parseFloat(oscAcquisitionTime.text))
         }
 
         onTextChanged: {
@@ -231,6 +231,6 @@ GridLayout {
         }
         oscTriggerVoltage.text = parameterDictionary["osc_trigger_voltage"]
         oscWaveformResolution.text = parameterDictionary["osc_waveform_resolution"]
-        oscAcquisitionTime.text = parameterDictionary["osc_aquisition_time"]
+        oscAcquisitionTime.text = parameterDictionary["osc_acquisition_time"]
     }
 }

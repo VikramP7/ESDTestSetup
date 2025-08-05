@@ -39,7 +39,7 @@ class PeripheralController(QAbstractListModel):
             "powersupply":0
         }
 
-        # formating properties
+        # formatting properties
         self.disconnected_red = "#DB324D"
         self.active_green = "#00916E"
 
@@ -48,7 +48,7 @@ class PeripheralController(QAbstractListModel):
             "osc_trigger_channel": 1,
             "osc_trigger_voltage": 1,
             "osc_waveform_resolution": 0.001,
-            "osc_aquisition_time": 1.0,
+            "osc_acquisition_time": 1.0,
 
             "smu_voltage_max": 5.0,
             "smu_voltage_min": 0.0,
@@ -98,11 +98,11 @@ class PeripheralController(QAbstractListModel):
             self.microcontroller.close()
 
 
-    """----------------- Parameter Updating Signal Receievers -------------"""
+    """----------------- Parameter Updating Signal Receivers -------------"""
     @Slot(str, float)
     def storeParameter(self, parameter_name: str, parameter_value: float):
         """
-        Stores a given paramater value into into spot in the temporary dictionary using the described parameter_name.
+        Stores a given parameter value into into spot in the temporary dictionary using the described parameter_name.
         This is to store all temporary values for before the user either choses to save or discard changes
 
         Args:
@@ -141,7 +141,7 @@ class PeripheralController(QAbstractListModel):
         for key in self.parameter_dictionary_temp.keys():
             self.parameter_dictionary[key] = self.parameter_dictionary_temp[key]
         print("parameters saved")
-        # take all changed temporary variables and make perminant sending messages to periferals to do so
+        # take all changed temporary variables and make permanent sending messages to peripherals to do so
 
     @Slot(result=dict)
     def getCurrentParameters(self):
@@ -303,10 +303,10 @@ class PeripheralController(QAbstractListModel):
         """
         print("Controller Refresh clicked")
 
-        # TODO VERY POORLY WRITTEN CODE necessary functions for microntroller haven't been written yet
+        # TODO VERY POORLY WRITTEN CODE necessary functions for microcontroller haven't been written yet
         connect = False
         if self.microcontroller == None:
-            # the microcontroller (teensey?) is not connected do connection procedure
+            # the microcontroller (teensy?) is not connected do connection procedure
             connect = True
         else:
             # the microcontroller is theoretically connected so check this 
@@ -314,7 +314,7 @@ class PeripheralController(QAbstractListModel):
 
         if connect:
             #do connection procedure
-            #self.microcontroller.connect() hasn't been writen yet
+            #self.microcontroller.connect() hasn't been written yet
             pass
 
     @Slot()
@@ -322,7 +322,7 @@ class PeripheralController(QAbstractListModel):
         """
         Called by Main.qml ONLY when smu refresh button is clicked
 
-        Checks com ports to update self.com_ports list with the availble com ports
+        Checks com ports to update self.com_ports list with the available com ports
         Attempts connection to SMU
         """
         print("SMU Refresh clicked")
@@ -354,7 +354,7 @@ class PeripheralController(QAbstractListModel):
         """
         Called by Main.qml ONLY when oscilloscope refresh button is clicked
 
-        Checks com ports to update self.com_ports list with the availble com ports
+        Checks com ports to update self.com_ports list with the available com ports
         Attempts connection to oscilloscope
         """
         print("Oscilloscope Refresh clicked")
@@ -386,11 +386,11 @@ class PeripheralController(QAbstractListModel):
             self.com_ports.append(com_port.name)
 
     @Slot(result=list)
-    def avalibleComPorts(self):
+    def availableComPorts(self):
         """
         Called by Main.qml
 
-        Returns the avaible com ports after refreshing the com_ports list
+        Returns the available com ports after refreshing the com_ports list
         Please see: https://pyserial.readthedocs.io/en/latest/tools.html
         """
         self.refreshComPorts()
