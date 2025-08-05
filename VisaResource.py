@@ -225,6 +225,13 @@ class VisaResource():
                 print("No Devices Connected")
             return False
 
+        try:
+            self.device_name = self.device.query("*IDN?") # pg. reference required here
+        except:
+            print("Failed to get response from " + self.device_name)
+            self.close(self)
+            return False
+
         if not silent:
             print("Connected to: " + self.device_name)
         return True
