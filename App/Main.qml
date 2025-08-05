@@ -39,6 +39,8 @@ ApplicationWindow{
         }
     }
 
+    
+
     // Add a menubar for the application
     menuBar: MenuBar {
         id: menubartop
@@ -105,6 +107,10 @@ ApplicationWindow{
         }
     }
 
+    onClosing:{
+        peripheral_controller.window_quit()
+    }
+
     function refreshMainMenu(){
         controllerOnlineIndicator.color = peripheral_controller.mainGridMenu_getControllerActiveColor()
         controllerParametersText.text = peripheral_controller.mainGridMenu_getControllerParameters()
@@ -128,6 +134,10 @@ ApplicationWindow{
         re1layText.text = peripheral_controller.mainGridMenu_getRe1layText()
         re3layText.text = peripheral_controller.mainGridMenu_getRe3layText()
         re4layText.text = peripheral_controller.mainGridMenu_getRe4layText()
+
+        peripheral_controller.refreshComPorts()
+        controllerComSelection.model = peripheral_controller.avalibleComPorts()
+        smuComSelection.model = peripheral_controller.avalibleComPorts()
     }
 
     GridLayout{
@@ -265,8 +275,26 @@ ApplicationWindow{
                 text: "Refresh"
 
                 onClicked:{
+                    peripheral_controller.mainGridMenu_getControllerPortNum(controllerComSelection.currentIndex)
                     peripheral_controller.mainGridMenu_controllerRefresh()
                     window.refreshMainMenu()
+                }
+            }
+
+            ComboBox{
+                id: controllerComSelection
+                anchors.topMargin: 10
+                anchors.rightMargin: 10
+                anchors.right: parent.right
+                anchors.top: parent.top
+                width: parent.width/5
+
+                currentIndex: 0
+                
+                model: peripheral_controller.avalibleComPorts()
+
+                onCurrentIndexChanged: {
+                    peripheral_controller.mainGridMenu_getControllerPortNum(currentIndex)
                 }
             }
 
@@ -633,8 +661,26 @@ ApplicationWindow{
                 text: "Refresh"
 
                 onClicked:{
+                    peripheral_controller.mainGridMenu_getSmuPortNum(smuComSelection.currentIndex)
                     peripheral_controller.mainGridMenu_smuRefresh()
                     window.refreshMainMenu()
+                }
+            }
+
+            ComboBox{
+                id: smuComSelection
+                anchors.topMargin: 10
+                anchors.rightMargin: 10
+                anchors.right: parent.right
+                anchors.top: parent.top
+                width: parent.width/4
+
+                currentIndex: 0
+                
+                model: peripheral_controller.avalibleComPorts()
+
+                onCurrentIndexChanged: {
+                    peripheral_controller.mainGridMenu_getSmuPortNum(currentIndex)
                 }
             }
 
