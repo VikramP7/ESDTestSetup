@@ -136,8 +136,8 @@ ApplicationWindow{
         re4layText.text = peripheral_controller.mainGridMenu_getRe4layText()
 
         peripheral_controller.refreshComPorts()
-        controllerComSelection.model = peripheral_controller.avalibleComPorts()
-        smuComSelection.model = peripheral_controller.avalibleComPorts()
+        controllerComSelection.model = peripheral_controller.availableComPorts()
+        smuComSelection.model = peripheral_controller.availableComPorts()
     }
 
     GridLayout{
@@ -291,7 +291,7 @@ ApplicationWindow{
 
                 currentIndex: 0
                 
-                model: peripheral_controller.avalibleComPorts()
+                model: peripheral_controller.availableComPorts()
 
                 onCurrentIndexChanged: {
                     peripheral_controller.mainGridMenu_getControllerPortNum(currentIndex)
@@ -677,7 +677,7 @@ ApplicationWindow{
 
                 currentIndex: 0
                 
-                model: peripheral_controller.avalibleComPorts()
+                model: peripheral_controller.availableComPorts()
 
                 onCurrentIndexChanged: {
                     peripheral_controller.mainGridMenu_getSmuPortNum(currentIndex)
