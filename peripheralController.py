@@ -4,7 +4,10 @@ from PySide6.QtQml import QmlElement
 import pyvisa
 from VisaResource import VisaResource
 from OscilloscopeInterface import Oscilloscope
+from OssillaSmu import OscillaSMU
 import xtralien
+import serial
+from serial.tools import list_ports
 
 QML_IMPORT_NAME = "PeripheralController"
 QML_IMPORT_MAJOR_VERSION = 1
@@ -14,16 +17,19 @@ class PeripheralController(QAbstractListModel):
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
 
+        # --DEVICES and helper variables--
+        # create global resource manager to use for all potential visa devices (many the VNA)
         self.visa_resource_manager = pyvisa.ResourceManager()
         self.oscilloscope = Oscilloscope(self.visa_resource_manager)
 
-        self.smu = None #xtralien.Device(f'COM{1}').smu1.oneshot(12)
+        self.smu = OscillaSMU()
+        self.com_ports = []
 
         self.vna = None
 
         self.microcontroller = None
 
-
+        # this list should hold if devices are connected or not
         self.device_activity_dict = {
             "osc": 0,
             "smu": 0,
@@ -68,15 +74,66 @@ class PeripheralController(QAbstractListModel):
             "powersupply_charge_voltage": 2000,
             "tlp_rise_time": "1ns"
         }
-    
+        # END CONSTRUCTOR
+
+    """----------------- General Application Functions ----------------"""
+    def peripheral_controller_quit(self):
+        """
+        Cleans up when closing the peripheral controller and/or ending the program.
+
+        Args:
+            None
+
+        Returns:
+            None
+
+    """
+        if self.oscilloscope != None:
+            self.oscilloscope.close()
+        if self.smu != None:
+            self.smu.close()
+        if self.vna != None:
+            self.vna.close()
+        if self.microcontroller != None:
+            self.microcontroller.close()
+
+
+    """----------------- Parameter Updating Signal Receievers -------------"""
     @Slot(str, float)
     def storeParameter(self, parameter_name: str, parameter_value: float):
+        """
+        Stores a given paramater value into into spot in the temporary dictionary using the described parameter_name.
+        This is to store all temporary values for before the user either choses to save or discard changes
+
+        Args:
+            parameter_name (str) :
+                The dictionary key for where the data will be stored
+            parameter_value (float) :
+                The data that should be stored into the key in the temp. dict (parameter_dictionary_temp)
+
+        Returns:
+            None
+
+        """
         print("Updated Parameter: " + parameter_name + " = " + str(parameter_value) )
         self.parameter_dictionary_temp[parameter_name] = parameter_value
 
     
     @Slot(bool)
     def saveParameters(self, save):
+        """
+        If save is true, saves all parameters from temporary parameter dictionary (self.parameter_dictionary_temp) into the actual parameter dictionary so
+        they can be used for setting peripheral device properties.
+        Other wise (save is false), disregards any changes made and maintains original parameters in dict.
+
+        Args:
+            save (bool) :
+                If true temporary values are saved to actual parameter dictionary (parameter_dictionary)
+
+        Returns:
+            None
+
+        """
         if not save:
             print("Parameter changes discarded")
             return
@@ -88,40 +145,64 @@ class PeripheralController(QAbstractListModel):
 
     @Slot(result=dict)
     def getCurrentParameters(self):
+        """
+        Returns the current parameters dictionary
+        """
         return self.parameter_dictionary
     
     # ----------------- Main Grid Menu Display ----------------
     @Slot(result=str)
     def mainGridMenu_getControllerParameters(self):
+        """
+        ONLY called by Main.qml to respond to refresh events to update controllerParametersText
+        """
         report_str = "Controller: " + ("Active" if self.device_activity_dict["teensy"] == 1 else "Disconnected")
         return report_str
     
     @Slot(result=str)
     def mainGridMenu_getControllerActiveColor(self):
+        """
+        ONLY called by Main.qml to respond to refresh events to update controllerOnlineIndicator
+        """
         return (self.active_green if self.device_activity_dict["teensy"] == 1 else self.disconnected_red)
     
     @Slot(result=str)
     def mainGridMenu_getPowersupplyParameters(self):
+        """
+        ONLY called by Main.qml to respond to refresh events to update powersupplyParametersText
+        """
         report_str = "Power Supply: " + ("Active" if self.device_activity_dict["powersupply"] == 1 else "Disconnected")
         report_str +="\nVoltage: " + str(self.current_value_dictionary["powersupply_charge_voltage"])
         return report_str
     
     @Slot(result=str)
     def mainGridMenu_getPowersupplyActiveColor(self):
+        """
+        ONLY called by Main.qml to respond to refresh events to update powersupplyOnlineIndicator
+        """
         return (self.active_green if self.device_activity_dict["powersupply"] == 1 else self.disconnected_red)
     
     @Slot(result=str)
     def mainGridMenu_getTlpParameters(self):
+        """
+        ONLY called by Main.qml to respond to refresh events to update tlpParametersText
+        """
         report_str = "TLP: " + ("Active" if self.device_activity_dict["tlp"] == 1 else "Disconnected")
         report_str +="\nRise Time: " + str(self.current_value_dictionary["tlp_rise_time"])
         return report_str
     
     @Slot(result=str)
     def mainGridMenu_getTlpActiveColor(self):
+        """
+        ONLY called by Main.qml to respond to refresh events to update tlpOnlineIndicator
+        """
         return (self.active_green if self.device_activity_dict["tlp"] == 1 else self.disconnected_red)
     
     @Slot(result=str)
     def mainGridMenu_getSmuParameters(self):
+        """
+        ONLY called by Main.qml to respond to refresh events to update smuParametersText
+        """
         report_str = "TLP: " + ("Active" if self.device_activity_dict["smu"] == 1 else "Disconnected")
         report_str +="\nVoltage: " + str(self.current_value_dictionary["smu_voltage"])
         report_str +="\nCurrent: " + str(self.current_value_dictionary["smu_current"])
@@ -129,26 +210,44 @@ class PeripheralController(QAbstractListModel):
     
     @Slot(result=str)
     def mainGridMenu_getSmuActiveColor(self):
+        """
+        ONLY called by Main.qml to respond to refresh events to update smuOnlineIndicator
+        """
         return (self.active_green if self.device_activity_dict["smu"] == 1 else self.disconnected_red)
     
     @Slot(result=str)
     def mainGridMenu_getVnaParameters(self):
+        """
+        ONLY called by Main.qml to respond to refresh events to update vnaParametersText
+        """
         report_str = "VNA: " + ("Active" if self.device_activity_dict["vna"] == 1 else "Disconnected")
         return report_str
     
     @Slot(result=str)
     def mainGridMenu_getVnaActiveColor(self):
+        """
+        ONLY called by Main.qml to respond to refresh events to update vnaOnlineIndicator
+        """
         return (self.active_green if self.device_activity_dict["vna"] == 1 else self.disconnected_red)
     
     @Slot(result=str)
     def mainGridMenu_getOscParameters(self):
+        """
+        ONLY called by Main.qml to respond to refresh events to update oscParametersText
+        """
         report_str = "Oscilloscope: " + ("Active" if self.device_activity_dict["osc"] == 1 else "Disconnected")
         return report_str
     
     @Slot(result=str)
     def mainGridMenu_getOscActiveColor(self):
+        """
+        ONLY called by Main.qml to respond to refresh events to update oscOnlineIndicator
+        """
         return (self.active_green if self.device_activity_dict["osc"] == 1 else self.disconnected_red)
     
+    """
+    Following functions ONLY called by Main.qml to respond to refresh events to update reNlayText
+    """
     @Slot(result=str)
     def mainGridMenu_getRe1layText(self):
         return "Relay 1 (re1lay)"
@@ -164,6 +263,23 @@ class PeripheralController(QAbstractListModel):
     @Slot(result=str)
     def mainGridMenu_getRe4layText(self):
         return "Relay 4 (re4lay)"
+    
+    @Slot(int)
+    def mainGridMenu_getSmuPortNum(self, port_num_index):
+        """
+        
+        """
+        if len(self.com_ports)<=0:
+            return
+        self.smu.set_com_port(self.com_ports[port_num_index])
+        print("Attempting connection to smu on COM port: " + str(port_num_index))
+        self.smu.connect()
+
+    @Slot(int)
+    def mainGridMenu_getControllerPortNum(self, port_num_index):
+        print("Attempting connection to controller on COM port: " + str(port_num_index))
+        #self.smu.connect(com_port=1)
+
 
     # ---------------- Main Grid Menu Buttons -----------------
     @Slot()
@@ -186,27 +302,58 @@ class PeripheralController(QAbstractListModel):
     @Slot()
     def mainGridMenu_smuRefresh(self):
         print("SMU Refresh clicked")
-
-        connect = False
-        if self.smu == None:
-            # the microcontroller (teensey?) is not connected do connection procedure
-            connect = True
-        else:
-            # the microcontroller is theoretically connected so check this 
-            connect = not self.smu.check_connection()
-
-        if connect:
+        if len(self.com_ports) < 1:
+            print("No Com Ports connected")
+        elif not self.smu.check_connection():
             #do connection procedure
-            #self.microcontroller.connect() hasn't been writen yet
-            pass
+            if self.smu.connect():
+                self.device_activity_dict["smu"] = 1
+                print("Attempted and succeeded to connect to SMU")
+            else:
+                self.device_activity_dict["smu"] = 0
+                print("Attempted and failed to connect to SMU")
+        else:
+            self.device_activity_dict["smu"] = 1
 
     @Slot()
     def mainGridMenu_vnaRefresh(self):
         print("VNA Refresh clicked")
+        print("MORE CODE MUST BE WRITTEN HERE TO IMPLEMENT THIS FEATURE")
 
     @Slot()
     def mainGridMenu_oscRefresh(self):
         print("Oscilloscope Refresh clicked")
+
+        if not self.oscilloscope.check_connection():
+            #do connection procedure
+            if self.oscilloscope.connect():
+                self.device_activity_dict["osc"] = 1
+                print("Attempted and succeeded to connect to Oscilloscope")
+            else:
+                self.device_activity_dict["osc"] = 0
+                print("Attempted and failed to connect to Oscilloscope")
+        else:
+            self.device_activity_dict["osc"] = 1
+
+    
+    # ------------------- Data Functions ----------------------
+    @Slot()
+    def refreshComPorts(self):
+        """
+        Please see: https://pyserial.readthedocs.io/en/latest/tools.html
+        """
+        com_port_objects = list_ports.comports()
+        self.com_ports = []
+        for com_port in com_port_objects:
+            self.com_ports.append(com_port.name)
+
+    @Slot(result=list)
+    def avalibleComPorts(self):
+        """
+        Please see: https://pyserial.readthedocs.io/en/latest/tools.html
+        """
+        self.refreshComPorts()
+        return self.com_ports
     
     
     # ------------------- Menu Bar Buttons --------------------
@@ -223,6 +370,9 @@ class PeripheralController(QAbstractListModel):
     def menubartop_filequit(self):
         print("File Signal Handler Quit")
 
+    @Slot()
+    def window_quit(self):
+        print("Window Closing")
 
     @Slot()
     def menubartop_configurecurrent(self):
