@@ -146,7 +146,7 @@ class OscillaSMU():
 
         """
         # TODO make check to ensure that provided voltage is within valid range
-        try:
+        try :
             voltage, current = self.device[channel].oneshot(voltage)[0]
         except serial.serialutil.SerialException:
             print("SMU: failed to make reading as device has been disconnected")
